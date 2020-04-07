@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Newman.Data;
 using NewmanQuiz.Services;
 using NewmanQuz.Helpers;
@@ -169,7 +170,8 @@ namespace NewmanQuz
             {
                 if (!TimerService.IsQuizStarted)
                 {
-                    TimerService.StartTimer();
+                    Task.Run(() => TimerService.StartTimer());
+
                 }
                 GenerateQuestions();
                 GenerateAnswers();

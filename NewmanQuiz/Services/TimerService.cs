@@ -4,13 +4,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace NewmanQuiz.Services
 {
     class TimerService
     {
         public static bool IsQuizStarted;
-        public static void StartTimer()
+
+        public static async Task StartTimer()
         {
 
             if (QuizSettings.SetTimeLimit != 0)
@@ -19,25 +21,20 @@ namespace NewmanQuiz.Services
 
                 do
                 {
-                    if (!IsQuizStarted)
-                    {
-                        IsQuizStarted = true;
-                        Program.StartQuiz();
-
-
-
-                    }
+                    IsQuizStarted = true;
+                    
 
                     if (IsQuizStarted == true)
                     {
-                        System.Threading.Thread.Sleep(1000);
+                        await Task.Delay(1000);
 
                         a--;
                     }
-                   
 
-                    if(a == 0)
+
+                    if (a == 0)
                     {
+
                         Console.Clear();
                         Console.Write("TIMES UP!");
                         Program.stopWatch.Stop();
