@@ -36,7 +36,7 @@ namespace NewmanQuiz.Services
                     {
 
                         Console.Clear();
-                        Console.Write("TIMES UP!");
+                        Console.Write("TIMES UP!\n");
                         Program.stopWatch.Stop();
                         System.Threading.Thread.Sleep(2500);
 
@@ -59,7 +59,7 @@ namespace NewmanQuiz.Services
                         System.Threading.Thread.Sleep(3500);
                         Program.ResetData();
                         Console.Clear();
-                        Program.ShowMenu();
+                        Environment.Exit(0); 
                     }
 
                 } while (a > 0);

@@ -141,6 +141,7 @@ namespace NewmanQuz
                                 QuizSettings.SetTimeLimit = Int32.Parse(val);
                                 Console.WriteLine("The timer is set for: " + val);
                                 System.Threading.Thread.Sleep(2500);
+                                Console.Clear();
                                 ShowMenu();
                             }
                             if (!valid)
