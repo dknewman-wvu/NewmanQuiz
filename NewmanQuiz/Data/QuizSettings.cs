@@ -12,7 +12,7 @@ namespace Newman.Data
 
         public static string GlobalLogPath { get; set; } = NewmanQuz.Helpers.FileProcessor.tempDirectory;
 
-        public static int SetTimeLimit { get; set; }
+        public static int SetTimeLimit { get; set; } = 0;
 
         public static string LogName = "QuizLog.txt";
 

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Newman.Data;
+using NewmanQuiz.Services;
 using NewmanQuz.Helpers;
 using NewmanQuz.QuizData;
 using NewmanQuz.Services;
@@ -98,69 +99,7 @@ namespace NewmanQuz
                             SetPlayerName();
                         }
 
-                        if (questionCount <= QuizSettings.setNumQuestions)
-                        {
-                            GenerateQuestions();
-                            GenerateAnswers();
-                            answerChosen = Console.ReadLine();
-                            if (getAnswerKey == answerChosen)
-                            {
-                                Console.WriteLine("CORRECT!");
-                                scoreNumOfRight = scoreNumOfRight + 1;
-                                scoreKeeper.numberOfCorrect = scoreNumOfRight;
-                                questionCount = questionCount + 1;
-                                System.Threading.Thread.Sleep(2000);
-                                Console.Clear();
-                                GenerateQuiz();
-                            }
-                            else
-                            {
-                                if (answerChosen.ToUpper() == "EXIT")
-                                {
-                                    isQuizStarted = false;
-                                    Console.Clear();
-                                    ShowMenu();
-                                }
-                                else
-                                {
-                                    Console.WriteLine("SORRY THAT IS INCORRECT!");
-                                    scoreNumOfWrong = scoreNumOfWrong + 1;
-                                    scoreKeeper.numberOfWrong = scoreNumOfWrong;
-                                    questionCount = questionCount + 1;
-                                    System.Threading.Thread.Sleep(2000);
-                                    Console.Clear();
-                                    GenerateQuiz();
-                                }
-
-                            }
-
-                        }
-                        else
-                        {
-                            stopWatch.Stop();
-                            // Get the elapsed time as a TimeSpan value.
-                            TimeSpan ts = stopWatch.Elapsed;
-
-                            // Format and display the TimeSpan value.
-
-                            string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-                                ts.Hours, ts.Minutes, ts.Seconds,
-                                ts.Milliseconds / 10);
-                            string logText = "PLAYER: " + QuizSettings.SetPlayerName + "\nNumber Answered Correct: " + scoreKeeper.numberOfCorrect +
-                                " Number of Incorrect: " + scoreKeeper.numberOfWrong + "\nLength of Time: " + elapsedTime + " \n" + Environment.NewLine;
-                            string logPath = QuizSettings.GlobalLogPath + QuizSettings.LogName;
-
-                            File.AppendAllText(logPath, logText);
-
-                            Console.WriteLine("Game Over\n");
-                            Console.WriteLine(logText);
-                            System.Threading.Thread.Sleep(3500);
-                            ResetData();
-                            Console.Clear();
-                            ShowMenu();
-
-                        }
-
+                        StartQuiz();
 
                         break;
 
@@ -174,20 +113,39 @@ namespace NewmanQuz
                         if (File.Exists(QuizSettings.GlobalLogPath + QuizSettings.LogName))
                         {
                             ReadLogFile();
+
                         }
                         else
                         {
                             Console.WriteLine("There is no log file. Play a few rounds to get on generated");
                             System.Threading.Thread.Sleep(2000);
                             ShowMenu();
-                            
+
 
                         }
 
                         break;
 
                     case MainMenu.SETTIMER:
-                        Console.WriteLine("TIMER!!");
+                        var valid = false;
+
+                        while (!valid)
+                        {
+                            Console.WriteLine("Set the number of seconds for the quiz.\nTo have unlimited time put in 0 \nRemember 1 minute = 60 seconds.");
+                            var val = Console.ReadLine();
+                            valid = !string.IsNullOrWhiteSpace(val) &&
+                                val.All(c => c >= '0' && c <= '9');
+                            if (valid == true)
+                            {
+                                QuizSettings.SetTimeLimit = Int32.Parse(val);
+                                Console.WriteLine("The timer is set for: " + val);
+                                System.Threading.Thread.Sleep(2500);
+                                ShowMenu();
+                            }
+                            if (!valid)
+                                Console.WriteLine("Please enter a valid a number!");
+                        }
+
 
                         break;
 
@@ -202,6 +160,76 @@ namespace NewmanQuz
                     case MainMenu.UNASSIGNED:
                         break;
                 }
+            }
+        }
+
+        public static void StartQuiz()
+        {
+            if (questionCount <= QuizSettings.setNumQuestions)
+            {
+                if (!TimerService.IsQuizStarted)
+                {
+                    TimerService.StartTimer();
+                }
+                GenerateQuestions();
+                GenerateAnswers();
+                answerChosen = Console.ReadLine();
+                if (getAnswerKey == answerChosen)
+                {
+                    Console.WriteLine("CORRECT!");
+                    scoreNumOfRight = scoreNumOfRight + 1;
+                    scoreKeeper.numberOfCorrect = scoreNumOfRight;
+                    questionCount = questionCount + 1;
+                    System.Threading.Thread.Sleep(2000);
+                    Console.Clear();
+                    GenerateQuiz();
+                }
+                else
+                {
+                    if (answerChosen.ToUpper() == "EXIT")
+                    {
+                        isQuizStarted = false;
+                        Console.Clear();
+                        ShowMenu();
+                    }
+                    else
+                    {
+                        Console.WriteLine("SORRY THAT IS INCORRECT!");
+                        scoreNumOfWrong = scoreNumOfWrong + 1;
+                        scoreKeeper.numberOfWrong = scoreNumOfWrong;
+                        questionCount = questionCount + 1;
+                        System.Threading.Thread.Sleep(2000);
+                        Console.Clear();
+                        GenerateQuiz();
+                    }
+
+                }
+
+            }
+            else
+            {
+                stopWatch.Stop();
+                // Get the elapsed time as a TimeSpan value.
+                TimeSpan ts = stopWatch.Elapsed;
+
+                // Format and display the TimeSpan value.
+
+                string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                    ts.Hours, ts.Minutes, ts.Seconds,
+                    ts.Milliseconds / 10);
+                string logText = "PLAYER: " + QuizSettings.SetPlayerName + "\nNumber Answered Correct: " + scoreKeeper.numberOfCorrect +
+                    " Number of Incorrect: " + scoreKeeper.numberOfWrong + "\nLength of Time: " + elapsedTime + " \n" + Environment.NewLine;
+                string logPath = QuizSettings.GlobalLogPath + QuizSettings.LogName;
+
+                File.AppendAllText(logPath, logText);
+
+                Console.WriteLine("Game Over\n");
+                Console.WriteLine(logText);
+                System.Threading.Thread.Sleep(3500);
+                ResetData();
+                Console.Clear();
+                ShowMenu();
+
             }
         }
 
@@ -226,14 +254,16 @@ namespace NewmanQuz
 
         private static void ReadLogFile()
         {
+
             string readText = File.ReadAllText(QuizSettings.GlobalLogPath + QuizSettings.LogName);
             Console.WriteLine(readText);
-            System.Threading.Thread.Sleep(2000);
+            System.Threading.Thread.Sleep(4000);
+            Console.Clear();
             ShowMenu();
 
         }
 
-        private static void ResetData()
+        public static void ResetData()
         {
             isQuizStarted = false;
             questionCount = 1;
@@ -278,7 +308,7 @@ namespace NewmanQuz
                 Console.WriteLine("Thank You! The new player is: " + QuizSettings.SetPlayerName);
                 System.Threading.Thread.Sleep(2000);
                 Console.Clear();
-                ShowMenu();
+                StartQuiz();
 
             }
             else
